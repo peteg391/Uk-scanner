@@ -1,0 +1,351 @@
+tidm,name,sector,symbol
+III,3i,Financial services,III.L
+ABDN,Aberdeen Group,Financial services,ABDN.L
+ADM,Admiral Group,Insurance,ADM.L
+AAF,Airtel Africa,Telecommunications services,AAF.L
+ALW,Alliance Witan,Investment trusts,ALW.L
+AAL,Anglo American plc,Mining,AAL.L
+ANTO,Antofagasta plc,Mining,ANTO.L
+ABF,Associated British Foods,Food & tobacco,ABF.L
+AZN,AstraZeneca,Pharmaceuticals & biotechnology,AZN.L
+AUTO,Autotrader Group,Media,AUTO.L
+AV,Aviva,Life insurance,AV.L
+BAB,Babcock International,Aerospace & defence,BAB.L
+BA,BAE Systems,Aerospace & defence,BA.L
+BBY,Balfour Beatty,Construction & materials,BBY.L
+BARC,Barclays,Banks,BARC.L
+BTRW,Barratt Redrow,Household goods & home construction,BTRW.L
+BP,BP,Oil & gas producers,BP.L
+BATS,British American Tobacco,Tobacco,BATS.L
+BLND,British Land,Real estate,BLND.L
+BT.A,BT Group,Telecommunications services,BT-A.L
+BNZL,Bunzl,Support services,BNZL.L
+BRBY,Burberry Group,Personal goods,BRBY.L
+CNA,Centrica,Multiline utilities,CNA.L
+CCEP,Coca-Cola Europacific Partners,Beverages,CCEP.L
+CCH,Coca-Cola HBC,Beverages,CCH.L
+CPG,Compass Group,Support services,CPG.L
+CCC,Computacenter,Software & computer services,CCC.L
+CTEC,Convatec,Health care equipment & supplies,CTEC.L
+CRDA,Croda International,Chemicals,CRDA.L
+DCC,DCC Energy,Support services,DCC.L
+DGE,Diageo,Beverages,DGE.L
+DPLM,Diploma,Industrial support services,DPLM.L
+EZJ,EasyJet,Travel and leisure,EZJ.L
+EDV,Endeavour Mining,Mining,EDV.L
+EXPN,Experian,Support services,EXPN.L
+FCIT,F & C Investment Trust,Collective investments,FCIT.L
+FRES,Fresnillo plc,Mining,FRES.L
+GAW,Games Workshop,Leisure goods,GAW.L
+GLEN,Glencore,Mining,GLEN.L
+GSK,GSK plc,Pharmaceuticals & biotechnology,GSK.L
+HLN,Haleon,Pharmaceuticals & biotechnology,HLN.L
+HLMA,Halma plc,Electronic equipment & parts,HLMA.L
+HSX,Hiscox,Non-life insurance,HSX.L
+HWDN,Howdens Joinery,Homebuilding & construction supplies,HWDN.L
+HSBA,HSBC,Banks,HSBA.L
+ICG,ICG,Financial services,ICG.L
+IGG,IG Group,Financial services,IGG.L
+IHG,IHG Hotels & Resorts,Travel & leisure,IHG.L
+IMI,IMI,Industrial engineering,IMI.L
+IMB,Imperial Brands,Tobacco,IMB.L
+INF,Informa,Media,INF.L
+IAG,International Airlines Group,Travel & leisure,IAG.L
+ITRK,Intertek,Support services,ITRK.L
+INVP,Investec,Financial services,INVP.L
+ITH,Ithaca Energy,Oil & gas producers,ITH.L
+JD,JD Sports,General retailers,JD.L
+BGEO,Lion Finance Group,Banking services,BGEO.L
+KGF,Kingfisher plc,Retailers,KGF.L
+LAND,Land Securities,Real estate investment trusts,LAND.L
+LGEN,Legal & General,Life insurance,LGEN.L
+LLOY,Lloyds Banking Group,Banks,LLOY.L
+LMP,LondonMetric Property,Real estate investment trusts,LMP.L
+LSEG,London Stock Exchange Group,Financial services,LSEG.L
+MNG,M&G,Financial services,MNG.L
+MKS,Marks & Spencer,Food & drug retailing,MKS.L
+MRO,Melrose Industries,Aerospace & defence,MRO.L
+MTLN,Metlen Energy & Metals,Multiline utilities,MTLN.L
+NG,National Grid plc,Multiline utilities,NG.L
+NWG,NatWest Group,Banks,NWG.L
+NXT,Next plc,General retailers,NXT.L
+PSON,Pearson plc,Media,PSON.L
+PSH,Pershing Square Holdings,Financial services,PSH.L
+PCT,Polar Capital Technology Trust,Investment trusts,PCT.L
+PRU,Prudential plc,Life insurance,PRU.L
+RKT,Reckitt,Household goods & home construction,RKT.L
+REL,RELX,Media,REL.L
+RTO,Rentokil Initial,Support services,RTO.L
+RIO,Rio Tinto,Mining,RIO.L
+RR,Rolls-Royce Holdings,Aerospace & defence,RR.L
+SGE,Sage Group,Software & computer services,SGE.L
+SBRY,Sainsbury's,Food & drug retailing,SBRY.L
+SMT,Scottish Mortgage Investment Trust,Collective investments,SMT.L
+SGRO,Segro,Real estate investment trusts,SGRO.L
+SVT,Severn Trent,Multiline utilities,SVT.L
+SHEL,Shell plc,Oil & gas producers,SHEL.L
+SMIN,Smiths Group,General industrials,SMIN.L
+SN,Smith & Nephew,Health care equipment & supplies,SN.L
+SPX,Spirax Group,Industrial engineering,SPX.L
+SSE,SSE plc,Electrical utilities & independent power producers,SSE.L
+STAN,Standard Chartered,Banks,STAN.L
+SDLF,Standard Life,Life insurance,SDLF.L
+STJ,St. James's Place,Financial services,STJ.L
+TSCO,Tesco,Food & drug retailing,TSCO.L
+BBOX,Tritax Big Box REIT,Real estate investment trusts,BBOX.L
+ULVR,Unilever,Personal goods,ULVR.L
+UU,United Utilities,Multiline utilities,UU.L
+VOD,Vodafone Group,Mobile telecommunications,VOD.L
+WEIR,Weir,Industrial goods and services,WEIR.L
+WTB,Whitbread,Retail hospitality,WTB.L
+WPP,WPP,Media,WPP.L
+3IN,3i Infrastructure,Financial services,3IN.L
+FOUR,4imprint,Media,FOUR.L
+AAS,Aberdeen Asia Focus,Investment trusts,AAS.L
+ASL,Aberforth Smaller Companies Trust,Investment trusts,ASL.L
+AEP,AEP Plantations,Food producers,AEP.L
+ALFA,Alfa Financial Software,Software and computer services,ALFA.L
+ATT,Allianz Technology Trust,Investment trusts,ATT.L
+AMRQ,Amaroq,Industrial metals and mining,AMRQ.L
+AO,AO World,Retail,AO.L
+APN,Applied Nutrition,Food producers,APN.L
+ASHM,Ashmore Group,Financial services,ASHM.L
+AIE,Ashoka India Equity Investment Trust,Investment trusts,AIE.L
+ASC,ASOS,Retailers,ASC.L
+ATYM,Atalaya Mining,Industrial metals and mining,ATYM.L
+ATG,Auction Technology Group,Software and computer services,ATG.L
+AGT,AVI Global Trust,Investment trusts,AGT.L
+AVON,Avon Technologies,Industrial goods and services,AVON.L
+BME,B&M,Retailers,BME.L
+BGFD,Baillie Gifford Japan Trust,Investment trusts,BGFD.L
+USA,Baillie Gifford US Growth Trust,Investment trusts,USA.L
+BCG,Baltic Classifieds,Consumer digital services,BCG.L
+BNKR,Bankers Investment Trust,Investment trusts,BNKR.L
+BAG,A.G. Barr,Beverages,BAG.L
+AJB,AJ Bell,Financial services,AJB.L
+BWY,Bellway,Home construction,BWY.L
+BKG,Berkeley Group Holdings,Household goods & home construction,BKG.L
+BHMG,BH Macro,Hedge funds,BHMG.L
+BYG,Big Yellow Group,Real estate investment trusts,BYG.L
+BPCR,Biopharma Credit,Investment trusts,BPCR.L
+BRGE,BlackRock Greater Europe Investment Trust,Investment trusts,BRGE.L
+BRSC,BlackRock Smaller Companies Trust,Investment trusts,BRSC.L
+BRWM,BlackRock World Mining Trust,Investment trusts,BRWM.L
+BMY,Bloomsbury Publishing,Media,BMY.L
+BOY,Bodycote,Industrial engineering,BOY.L
+BREE,Breedon Group,Construction & materials,BREE.L
+BPT,Bridgepoint Group,Financial services,BPT.L
+BUT,Brunner Investment Trust,Investment trusts,BUT.L
+BYIT,Bytes Technology Group,Aerospace & defence,BYIT.L
+CLDN,Caledonia Investments,Investment trusts,CLDN.L
+CGT,Capital Gearing Trust,Investment trusts,CGT.L
+CWR,Ceres Power,Alternative energy,CWR.L
+CHG,Chemring Group,Aerospace & defence,CHG.L
+CSN,Chesnara,Life insurance,CSN.L
+CTY,City of London Investment Trust,Investment trusts,CTY.L
+CKN,Clarkson,Industrial transportation,CKN.L
+CBG,Close Brothers Group,Financial services,CBG.L
+CMCX,CMC Markets,Financial services,CMCX.L
+COA,Coats Group,Consumer staples,COA.L
+CORD,Cordiant Digital Infrastructure,Investment trusts,CORD.L
+COST,Costain Group,Engineering and construction,COST.L
+CWK,Cranswick,Food producers,CWK.L
+CURY,Currys,Retailers,CURY.L
+CVSG,CVS Group,Health care,CVSG.L
+DLN,Derwent London,Real estate investment trusts,DLN.L
+DSCV,discoverIE,Support services,DSCV.L
+DOM,Domino's Pizza,Travel & leisure,DOM.L
+DRX,Drax Group,Electricity,DRX.L
+DOCS,Dr. Martens,Retailers,DOCS.L
+DNLM,Dunelm Group,Retailers,DNLM.L
+EDIN,Edinburgh Investment Trust,Investment trusts,EDIN.L
+EWI,Edinburgh Worldwide Investment Trust,Investment trusts,EWI.L
+ELM,Elementis,Chemicals,ELM.L
+ENOG,Energean,Oil & gas producers,ENOG.L
+ENT,Entain,Travel & leisure,ENT.L
+ESCT,European Smaller Companies Trust,Investment trusts,ESCT.L
+EWG,Eurowag,Financial services,EWG.L
+FCSS,Fidelity China Special Situations,Investment trusts,FCSS.L
+FEML,Fidelity Emerging Markets,Investment trusts,FEML.L
+FEV,Fidelity European Trust,Investment trusts,FEV.L
+FSV,Fidelity Special Values,Investment trusts,FSV.L
+FGT,Finsbury Growth & Income Trust,Equity investments,FGT.L
+FGP,FirstGroup,Travel & leisure,FGP.L
+FGEN,Foresight Environmental Infrastructure,Investment trusts,FGEN.L
+FSG,Foresight Group,Investment banking and brokerage services,FSG.L
+FRAS,Frasers Group,Retailers,FRAS.L
+FCH,Funding Circle,Financial services,FCH.L
+GFRD,Galliford Try,Construction,GFRD.L
+GAMA,Gamma Communications,Telecommunications,GAMA.L
+GCP,GCP Infrastructure Investments,General financial,GCP.L
+GEN,Genuit Group,Construction & materials,GEN.L
+GNS,Genus,Pharmaceuticals & biotechnology,GNS.L
+DATA,GlobalData,Industrial goods and services,DATA.L
+GSCT,Global Smaller Companies Trust,Investment trusts,GSCT.L
+GDWN,Goodwin,General industrials,GDWN.L
+GFTU,Grafton Group,Support services,GFTU.L
+GRI,Grainger,Real estate investment & services,GRI.L
+GPE,Great Portland Estates,Real estate investment trusts,GPE.L
+UKW,Greencoat UK Wind,"Gas, water & multiutilities",UKW.L
+GNC,Greencore,"Food, beverage and tobacco",GNC.L
+GRG,Greggs,Food & drug retailers,GRG.L
+HFD,Halfords,Retailers,HFD.L
+HMSO,Hammerson,Real estate investment trusts,HMSO.L
+HANA,Hansa Investment Company,Investment trusts,HANA.L
+HBR,Harbour Energy,Oil & gas producers,HBR.L
+HVPE,HarbourVest Global Private Equity,Equity investments,HVPE.L
+HWG,Harworth Group,Real estate,HWG.L
+HAS,Hays,Support services,HAS.L
+HTWS,Helios Towers,Telecomms,HTWS.L
+HFEL,Henderson Far East Income,Investment trusts,HFEL.L
+HSL,Henderson Smaller Companies Investment Trust,Investment trusts,HSL.L
+HRI,Herald Investment Trust,Investment trusts,HRI.L
+HGT,Hg Capital Trust,Investment trusts,HGT.L
+HICL,HICL Infrastructure Company,Investment trusts,HICL.L
+HIK,Hikma Pharmaceuticals,Pharmaceuticals and biotechnology,HIK.L
+HILS,Hill & Smith,Industrial engineering,HILS.L
+HFG,Hilton Food Group,Food producers,HFG.L
+HOC,Hochschild Mining,Basic resources,HOC.L
+BOWL,Hollywood Bowl Group,Travel and leisure,BOWL.L
+HTG,Hunting,"Oil, gas and coal",HTG.L
+ICGT,ICG Enterprise Trust,Investment trusts,ICGT.L
+INCH,Inchcape,Retailers,INCH.L
+IHP,IntegraFin Holdings,Financial services,IHP.L
+INPP,International Public Partnerships,Financial services,INPP.L
+IWG,International Workplace Group,Support services,IWG.L
+IAD,Invesco Asia Dragon Trust,Investment trusts,IAD.L
+IPO,IP Group,Financial services,IPO.L
+ITV,ITV,Media,ITV.L
+JMAT,Johnson Matthey,Chemicals,JMAT.L
+JSG,Johnson Service Group,Industrial support services,JSG.L
+JAM,JPMorgan American Investment Trust,Investment trusts,JAM.L
+JCH,JPMorgan Claverhouse Investment Trust,Investment trusts,JCH.L
+JEMI,JPMorgan Emerging Markets Dividend Income,Investment trusts,JEMI.L
+JMGI,JPMorgan Emerging Markets Growth & Income,Investment trusts,JMGI.L
+JEDT,JPMorgan European Discovery,Investment trusts,JEDT.L
+JEGI,JPMorgan European Growth & Income,Investment trusts,JEGI.L
+JGGI,JPMorgan Global Growth & Income,Investment trusts,JGGI.L
+JFJ,JPMorgan Japanese Investment Trust,Investment trusts,JFJ.L
+JUP,Jupiter Fund Management,Financial services,JUP.L
+KNOS,Kainos,Software & computer services,KNOS.L
+KLR,Keller Group,Construction & materials,KLR.L
+KIE,Kier Group,Construction & materials,KIE.L
+LRE,Lancashire Holdings,Nonlife insurance,LRE.L
+LWDB,Law Debenture,Investment trusts,LWDB.L
+EMG,Man Group,Investment trusts,EMG.L
+MEGP,ME Group International,Leisure goods,MEGP.L
+MRC,Mercantile Investment Trust,Collective investments,MRC.L
+MRCH,Merchants Trust,Investment trusts,MRCH.L
+MNO,Meridian Mining,Industrial metals and mining,MNO.L
+MTRO,Metro Bank,Banks,MTRO.L
+PAGE,Michael Page,Support services,PAGE.L
+MAB,Mitchells & Butlers,Travel & leisure,MAB.L
+MTO,Mitie,Support services,MTO.L
+GROW,Molten Ventures,Financial services,GROW.L
+MNDI,Mondi,Containers & packaging,MNDI.L
+MNKS,Monks Investment Trust,Investment trusts,MNKS.L
+MONY,MONY Group,Media,MONY.L
+MOON,Moonpig,Retailers,MOON.L
+MGAM,Morgan Advanced Materials,Electronic & electrical equipment,MGAM.L
+MGNS,Morgan Sindall Group,Construction & materials,MGNS.L
+MUT,Murray Income Trust,Investment trusts,MUT.L
+MYI,Murray International Trust,Investment trusts,MYI.L
+NCC,NCC Group,Software and computer services,NCC.L
+NBPE,Neuberger Private Equity Partners,Collective investments,NBPE.L
+N91,Ninety One,Financial services,N91.L
+NAIT,North American Income Trust,Investment trusts,NAIT.L
+NAS,North Atlantic Smaller Companies Investment Trust,Investment trusts,NAS.L
+OCI,Oakley Capital Investments,Investment trusts,OCI.L
+OCDO,Ocado Group,Food & drug retailers,OCDO.L
+OSB,OSB Group,Banks,OSB.L
+OXB,Oxford Biomedica,Pharmaceuticals and biotechnology,OXB.L
+OXIG,Oxford Instruments,Electronic & electrical equipment,OXIG.L
+ONT,Oxford Nanopore Technologies,Health care,ONT.L
+PHI,Pacific Horizon Investment Trust,Investment trusts,PHI.L
+PAF,Pan African Resources,Precious metals and mining,PAF.L
+PINT,Pantheon Infrastructure,Investment trusts,PINT.L
+PIN,Pantheon International,Equity investments,PIN.L
+PAG,Paragon Banking Group,Financial services,PAG.L
+PEY,Partners Group Private Equity,Investment trusts,PEY.L
+PPET,Patria Private Equity Trust,Financial services,PPET.L
+PNN,Pennon Group,"Gas, water & multiutilities",PNN.L
+PSN,Persimmon,Household goods & home construction,PSN.L
+PNL,Personal Assets Trust,Investment trusts,PNL.L
+PETS,Pets at Home,Retailers,PETS.L
+PINE,Pinewood Technologies,Software and computer services,PINE.L
+PTEC,Playtech,Software & computer services,PTEC.L
+PLUS,Plus500,Financial services,PLUS.L
+PCGH,Polar Capital Global Healthcare Trust,Investment trusts,PCGH.L
+POLN,Pollen Street Group,Financial services,POLN.L
+PPH,PPHE Hotel Group,Travel and leisure,PPH.L
+PFD,Premier Foods,Food & drug retailers,PFD.L
+PHP,Primary Health Properties,Real estate investment trusts,PHP.L
+PRN,Princes Group,Food and drink,PRN.L
+QQ,Qinetiq,Aerospace & defence,QQ.L
+QLT,Quilter,Financial services,QLT.L
+RNK,Rank Group,Travel and leisure,RNK.L
+RPI,Raspberry Pi Holdings,Technology,RPI.L
+RAT,Rathbones,Financial services,RAT.L
+RSW,Renishaw,Electronic & electrical equipment,RSW.L
+RHIM,RHI Magnesita,Support services,RHIM.L
+RMV,Rightmove,Media,RMV.L
+RCP,RIT Capital Partners,Investment trusts,RCP.L
+ROSE,Rosebank Industries,Industrial goods and services,ROSE.L
+ROR,Rotork,Industrial engineering,ROR.L
+RS1,RS Group,Industrials,RS1.L
+RTW,RTW Biotech Opportunities,Investment trusts,RTW.L
+RICA,Ruffer Investment Company,Investment trusts,RICA.L
+SAFE,Safestore,Real estate investment trusts,SAFE.L
+SAGA,Saga,Travel and leisure,SAGA.L
+SVS,Savills,Real estate investment & services,SVS.L
+MNTN,Schiehallion Fund,Investment trusts,MNTN.L
+ATR,Schroder Asian Total Return Investment Company,Investment trusts,ATR.L
+SDP,Schroder AsiaPacific Fund,Investment trusts,SDP.L
+SOI,Schroder Oriental Income Fund,Financial services,SOI.L
+SAIN,Scottish American Investment Company,Investment trusts,SAIN.L
+SEIT,SDCL Efficiency Income Trust,Energy,SEIT.L
+SEQI,Sequoia Economic Infrastructure Income Fund,Financial services,SEQI.L
+SSIT,Seraphim Space Investment Trust,Investment trusts,SSIT.L
+SRP,Serco,Support services,SRP.L
+SHC,Shaftesbury Capital,Real estate investment trusts,SHC.L
+SHAW,Shawbrook Bank,Banking,SHAW.L
+SRE,Sirius Real Estate,Real estate,SRE.L
+SCT,Softcat,Software & computer services,SCT.L
+SPI,Spire Healthcare,Health care equipment & services,SPI.L
+SSPG,SSP Group,Retailers,SSPG.L
+SUPR,Supermarket Income REIT,Real estate investment trusts,SUPR.L
+SYNC,Syncona,Pharmaceuticals & biotechnology,SYNC.L
+THRL,Target Healthcare REIT,Real estate investment trusts,THRL.L
+TATE,Tate & Lyle,Food producers,TATE.L
+TW,Taylor Wimpey,Household goods & home construction,TW.L
+TBCG,TBC Bank,Banks,TBCG.L
+TEP,Telecom Plus,Telecomms,TEP.L
+TMPL,Temple Bar Investment Trust,Collective investments,TMPL.L
+TEM,Templeton Emerging Markets Investment Trust,Investment trusts,TEM.L
+TRIG,The Renewables Infrastructure Group,Investment trusts,TRIG.L
+THG,THG,Personal products,THG.L
+TCAP,TP ICAP,Support services,TCAP.L
+TRN,Trainline,Industrial transportation,TRN.L
+TPK,Travis Perkins,Support services,TPK.L
+TRY,TR Property Investment Trust,Investment trusts,TRY.L
+TRST,Trustpilot,Technology,TRST.L
+TFIF,Twentyfour Income Fund,Investment trusts,TFIF.L
+UTG,Unite Group,Real estate investment trusts,UTG.L
+UEM,Utilico Emerging Markets,Investment trusts,UEM.L
+VSVS,Vesuvius,General industrials,VSVS.L
+VCT,Victrex,Chemicals,VCT.L
+VEIL,Vietnam Enterprise Investments,General financial,VEIL.L
+VOF,VinaCapital Vietnam Opportunity Fund,General financial,VOF.L
+VTY,Vistry Group,Home construction,VTY.L
+VLX,Volex,Industrial goods and services,VLX.L
+FAN,Volution Group,Construction & materials,FAN.L
+WOSG,Watches of Switzerland,Personal goods,WOSG.L
+JDW,Wetherspoons,Travel & leisure,JDW.L
+SMWH,WHSmith,Retailers,SMWH.L
+WIX,Wickes,Retailers,WIX.L
+WIZZ,Wizz Air,Travel & leisure,WIZZ.L
+WKP,Workspace Group,Real estate investment trusts,WKP.L
+WWH,Worldwide Healthcare Trust,Investment trusts,WWH.L
+XPP,XP Power,Industrial goods and services,XPP.L
+XPS,XPS Pensions,Financial services,XPS.L
+ZIG,Zigup,Support services,ZIG.L
