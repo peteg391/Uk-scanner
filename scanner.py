@@ -152,6 +152,76 @@ def cap(x, hi):
     return float(max(-hi, min(hi, x)))
 
 
+def find_gap_setup(o, h, l, c, atr):
+    """Looks for the unfilled-gap-up pullback setup (the one rule from my backtests with a positive result):
+    in the last 10 bars a day whose LOW was 2-25% above the previous day's HIGH (a real gap, no overlap).
+    Entry idea = middle of that gap, stop = previous high minus 0.25 x ATR, target = 2x the risk above entry.
+    Returns None, or a dict with state 'waiting' (price still above the entry), 'buyzone' (price has pulled back
+    to the entry zone and is still above the stop) or 'bounced' (it already pulled back and moved away)."""
+    n = len(c)
+    for g in range(n - 1, max(n - 11, 20) - 1, -1):          # most recent gap first
+        a = atr.iloc[g]
+        if not np.isfinite(a) or not (l.iloc[g] > h.iloc[g - 1]):
+            continue
+        size = l.iloc[g] / h.iloc[g - 1] - 1
+        if not (0.02 <= size <= 0.25):
+            continue
+        lo, hi = float(h.iloc[g - 1]), float(l.iloc[g])
+        mid, stop = (lo + hi) / 2, lo - 0.25 * float(a)
+        after = l.iloc[g + 1:]
+        if len(after) and after.min() <= stop:
+            continue                                          # stop level traded: setup failed
+        touched = bool(len(after) and after.min() <= mid)
+        close = float(c.iloc[-1])
+        risk = mid - stop
+        if close <= mid * 1.01:
+            state = "buyzone"
+        elif touched:
+            state = "bounced"
+        else:
+            state = "waiting"
+        return {"state": state, "gap_pct": size, "age": n - 1 - g, "entry": mid, "stop": stop,
+                "target": mid + 2 * risk, "risk_pct": risk / mid}
+    return None
+
+
+def gap_down_active(h, l, c):
+    """An unfilled gap DOWN in the last 10 bars (high below the previous low) that price has not recovered."""
+    n = len(c)
+    for g in range(n - 1, max(n - 11, 20) - 1, -1):
+        if h.iloc[g] < l.iloc[g - 1] and (l.iloc[g - 1] / h.iloc[g] - 1) >= 0.02:
+            return bool(c.iloc[-1] < l.iloc[g - 1])
+    return False
+
+
+def classify(m: dict):
+    """BUY / MONITOR / AVOID. A checklist, not a prediction (see the 'How to read' box)."""
+    gs = m.get("gap_setup")
+    down = m["price"] < m["sma200"] and m["sma50"] < m["sma200"]
+    up = m["price"] > m["sma200"] and m["sma50"] > m["sma200"]
+    if gs and gs["state"] == "buyzone":
+        if gs["risk_pct"] < 0.02:
+            return "MONITOR", "Gap pullback, but the stop is under 2% away: UK stamp duty (0.5%) would eat too much of it"
+        return "BUY", f"Pulled back into the entry zone of a {gs['gap_pct'] * 100:.1f}% gap-up from {gs['age']} day(s) ago, stop still intact"
+    if m["new_low"] or (m["break_down"] and m["rvol"] >= 1.3):
+        return "AVOID", "Breaking down to new lows on volume"
+    if m.get("gap_down"):
+        return "AVOID", "Unfilled gap down, not recovered"
+    if m["death"]:
+        return "AVOID", "Death cross (50-day fell under the 200-day)"
+    if down:
+        return "AVOID", "Downtrend: below the 200-day and the 50-day is under the 200-day"
+    if m["rsi"] >= 85:
+        return "AVOID", f"Blow-off: RSI {m['rsi']:.0f}, chasing risk"
+    if gs and gs["state"] == "waiting":
+        return "MONITOR", f"Fresh {gs['gap_pct'] * 100:.1f}% gap-up: wait for a pullback to the entry level"
+    if gs and gs["state"] == "bounced":
+        return "MONITOR", "Gap-up already pulled back and bounced: the entry has gone, don't chase"
+    if up:
+        return "MONITOR", "Uptrend, but no tested entry trigger today"
+    return "MONITOR", "Mixed signals, no clear trend"
+
+
 def score_stock(df: pd.DataFrame, vol_frac: float):
     df = df.tail(260)
     c, o, h, l, v = df["Close"], df["Open"], df["High"], df["Low"], df["Volume"]
@@ -192,7 +262,16 @@ def score_stock(df: pd.DataFrame, vol_frac: float):
     squeeze_recent = bw_pct.iloc[-6:-1].min() <= 0.05 if len(bw_pct) > 60 else False
     squeeze_now = bw_pct.iloc[-1] <= 0.05 if len(bw_pct) > 60 else False
 
+    tr = pd.concat([h - l, (h - c.shift()).abs(), (l - c.shift()).abs()], axis=1).max(axis=1)
+    atr = tr.rolling(14).mean()
+    gap_setup = find_gap_setup(o, h, l, c, atr)
+    s50, s200 = sma50.iloc[-1], sma200.iloc[-1]
+    if not (np.isfinite(s50) and np.isfinite(s200)):
+        return None
+
     return {
+        "sma50": float(s50), "sma200": float(s200),
+        "gap_setup": gap_setup, "gap_down": gap_down_active(h, l, c),
         "price": float(c.iloc[-1]),
         "ret": float(ret), "ret_z": float(ret_z),
         "gap": float(gap), "gap_z": float(gap_z),
@@ -254,6 +333,7 @@ def finalise(m: dict) -> dict:
 
     m["score"] = round(s, 2)
     m["reasons"] = reasons
+    m["signal"], m["signal_why"] = classify(m)
     m["direction"] = "up" if (m["ret"] if abs(m["ret_z"]) >= 0.5 else m["mom5"]) >= 0 else "down"
     return m
 
@@ -278,6 +358,23 @@ def fmt_price(p):
     return f"{p:,.0f}p" if p >= 100 else f"{p:,.2f}p"
 
 
+BADGE_ICON = {"BUY": "✓", "MONITOR": "●", "AVOID": "✕"}
+
+
+def badge(sig):
+    return f'<span class="badge b-{sig.lower()}">{BADGE_ICON[sig]} {sig}</span>'
+
+
+def levels_html(m):
+    gs = m.get("gap_setup")
+    if not gs or gs["state"] not in ("buyzone", "waiting"):
+        return ""
+    head = "Entry zone" if gs["state"] == "buyzone" else "Watch level (buy on a pullback to)"
+    return (f'<div class="levels"><b>{head}:</b> {fmt_price(gs["entry"])} · '
+            f'<b>Stop:</b> {fmt_price(gs["stop"])} ({gs["risk_pct"] * 100:.1f}% away) · '
+            f'<b>Target:</b> {fmt_price(gs["target"])} (2× the risk)</div>')
+
+
 def card(m):
     arrow = "▲" if m["direction"] == "up" else "▼"
     chips = "".join(f'<span class="chip">{escape(r)}</span>' for r in m["reasons"])
@@ -286,7 +383,7 @@ def card(m):
 <article class="card">
   <div class="row1">
     <div>
-      <div class="tick">{tidm}</div>
+      <div class="tick">{tidm} {badge(m['signal'])}</div>
       <div class="name">{escape(m['name'])}</div>
       <div class="sector">{escape(m['sector'])}</div>
     </div>
@@ -296,6 +393,8 @@ def card(m):
       <div class="score" title="Unusualness score">Score {m['score']:.1f}</div>
     </div>
   </div>
+  <div class="why"><b>{escape(m['signal'].title())}:</b> {escape(m['signal_why'])}</div>
+  {levels_html(m)}
   {sparkline(m['spark'], m['direction'])}
   <div class="chips">{chips}</div>
   <div class="links">
@@ -317,16 +416,23 @@ def heat_tile(name, ret, n):
 
 def build_html(top, everything, sectors, meta):
     cards = "".join(card(m) for m in top) or '<p class="empty">Nothing unusual right now. Quiet market.</p>'
+    buys = [m for m in everything if m["signal"] == "BUY"]
+    buy_cards = "".join(card(m) for m in buys) or '<p class="empty">No stock is in a tested buy zone right now. That is normal: the setup is rare.</p>'
+    counts = {k: sum(1 for m in everything if m["signal"] == k) for k in ("BUY", "MONITOR", "AVOID")}
     tiles = "".join(heat_tile(s["sector"], s["ret"], s["n"]) for s in sectors)
+    order = {"BUY": 0, "MONITOR": 1, "AVOID": 2}
     rows = "".join(
-        f"<tr><td>{escape(m['tidm'])}</td><td class='num {m['direction']}'>{m['ret'] * 100:+.1f}%</td>"
+        f"<tr data-sig='{m['signal']}'><td>{escape(m['tidm'])}<div class='sub'>{escape(m['name'])}</div></td>"
+        f"<td>{badge(m['signal'])}<div class='sub'>{escape(m['signal_why'])}</div></td>"
+        f"<td class='num {m['direction']}'>{m['ret'] * 100:+.1f}%</td>"
         f"<td class='num'>{m['rvol']:.1f}×</td><td class='num'>{m['rsi']:.0f}</td>"
         f"<td class='num'>{m['score']:.1f}</td></tr>"
-        for m in everything[:60]
+        for m in sorted(everything, key=lambda m: (order[m["signal"]], -m["score"]))
     )
     return HTML_TEMPLATE.format(
         updated=escape(meta["updated"]), status=escape(meta["status"]),
-        n=meta["n_scanned"], cards=cards, tiles=tiles, rows=rows,
+        n=meta["n_scanned"], cards=cards, tiles=tiles, rows=rows, buy_cards=buy_cards,
+        n_buy=counts["BUY"], n_mon=counts["MONITOR"], n_avoid=counts["AVOID"],
         partial_note=("Volume is compared with what's normal by this time of day."
                       if meta["partial"] else "Showing the last full session."),
     )
@@ -400,6 +506,19 @@ th {{ color: var(--muted); font-weight: 500; }}
 .help p {{ margin: 8px 0; color: var(--ink2); font-size: 14px; }}
 .help b {{ color: var(--ink); }}
 .empty {{ color: var(--ink2); }}
+.badge {{ display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .04em; padding: 1px 8px;
+  border-radius: 999px; border: 1.5px solid var(--ink2); color: var(--ink); vertical-align: middle; margin-left: 6px; }}
+.b-buy {{ border-color: var(--up); background: color-mix(in oklab, var(--up) 18%, transparent); }}
+.b-avoid {{ border-color: var(--down); background: color-mix(in oklab, var(--down) 18%, transparent); }}
+.b-monitor {{ border-style: dashed; }}
+.why {{ font-size: 13px; color: var(--ink2); margin-top: 8px; }} .why b {{ color: var(--ink); }}
+.levels {{ font-size: 13px; background: var(--chip); border-radius: 8px; padding: 6px 10px; margin-top: 8px; }}
+.sub {{ font-size: 11.5px; color: var(--muted); font-weight: 400; }}
+.counts {{ display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; }}
+.filters {{ display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }}
+.filters button {{ font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--ink2);
+  background: transparent; color: var(--ink); cursor: pointer; }}
+.filters button[aria-pressed="true"] {{ background: var(--ink); color: var(--page); }}
 footer {{ color: var(--muted); font-size: 12px; margin: 24px 0 8px; }}
 </style></head>
 <body><main>
@@ -409,15 +528,37 @@ footer {{ color: var(--muted); font-size: 12px; margin: 24px 0 8px; }}
   <div class="meta">Prices ~15 min delayed. {partial_note}</div>
 </header>
 
+<div class="counts"><span class="badge b-buy">✓ BUY {n_buy}</span><span class="badge b-monitor">● MONITOR {n_mon}</span><span class="badge b-avoid">✕ AVOID {n_avoid}</span></div>
+<div class="meta" style="margin-top:6px">Signals are rule-based checklists, not recommendations. See "How to read this".</div>
+
+<h2>Buy list (tested setup only)</h2>
+<div class="cards">{buy_cards}</div>
+
 <h2>Sectors today</h2>
 <div class="tiles">{tiles}</div>
 
 <h2>Worth a look</h2>
 <div class="cards">{cards}</div>
 
-<details><summary>All scored stocks (top 60)</summary>
-<table><thead><tr><th>Stock</th><th class="num">Today</th><th class="num">Volume</th><th class="num">RSI</th><th class="num">Score</th></tr></thead>
+<details><summary>All stocks with their signal</summary>
+<div class="filters" id="flt">
+  <button type="button" data-f="ALL" aria-pressed="true">All</button>
+  <button type="button" data-f="BUY" aria-pressed="false">Buy</button>
+  <button type="button" data-f="MONITOR" aria-pressed="false">Monitor</button>
+  <button type="button" data-f="AVOID" aria-pressed="false">Avoid</button>
+</div>
+<table id="tbl"><thead><tr><th>Stock</th><th>Signal</th><th class="num">Today</th><th class="num">Volume</th><th class="num">RSI</th><th class="num">Score</th></tr></thead>
 <tbody>{rows}</tbody></table></details>
+<script>
+document.getElementById("flt").addEventListener("click", function (e) {{
+  var b = e.target.closest("button"); if (!b) return;
+  var f = b.getAttribute("data-f");
+  this.querySelectorAll("button").forEach(function (x) {{ x.setAttribute("aria-pressed", x === b ? "true" : "false"); }});
+  document.querySelectorAll("#tbl tbody tr").forEach(function (r) {{
+    r.style.display = (f === "ALL" || r.getAttribute("data-sig") === f) ? "" : "none";
+  }});
+}});
+</script>
 
 <details class="help"><summary>How to read this</summary>
 <p><b>σ (sigma)</b>: how big today's move is compared with this stock's normal daily move over the last 60 days. 1σ is an ordinary day; 3σ or more is rare.</p>
@@ -428,9 +569,13 @@ footer {{ color: var(--muted); font-size: 12px; margin: 24px 0 8px; }}
 <p><b>Breakout / 52-week high or low</b>: price has left its recent range.</p>
 <p><b>Squeeze</b>: price has been unusually quiet; big moves often follow.</p>
 <p><b>Score</b>: everything combined. It ranks how <i>unusual</i> a stock is, not whether to buy it.</p>
+<p><b>✓ Buy</b>: the ONLY setup here that came out positive in my backtests (US stocks and ETFs, not UK): a stock gapped up 2-25% in the last 10 days with no overlap, has since pulled back to the middle of that gap, and has not hit its stop level. The card gives the entry, stop (just under the gap) and a target 2× the risk. Backtest: roughly +0.3 of the risk per trade on average, winning under half of trades, with orders assumed to fill exactly at the entry price. UK stamp duty (0.5%) and wider spreads cut that, so a Buy needs a stop at least 2% away.</p>
+<p><b>● Monitor</b>: no tested trigger today. This includes fresh gap-ups waiting for a pullback (the card shows the level to watch) and anything else without a clear signal.</p>
+<p><b>✕ Avoid</b>: risk flags, not a forecast. Downtrend, new lows on volume, an unfilled gap down, a death cross or RSI above 85. In my tests stocks in downtrends did <i>not</i> do worse than average over the next 20 days, so Avoid means "none of my tested setups apply and the picture is weak", not "this will fall".</p>
+<p><b>Limits</b>: a single day's gap and a 10-day window is a small signal; the daily data here is delayed ~15 min and today's bar is incomplete during the session, so a level can change before the close.</p>
 </details>
 
-<footer>FTSE 100 + 250 (investment trusts excluded). Not financial advice. Refreshes every 30 min in market hours.</footer>
+<footer>FTSE 100 + 250 (investment trusts excluded). Signals are rule-based checklists, not financial advice or recommendations. Refreshes every 30 min in market hours.</footer>
 </main></body></html>"""
 
 
