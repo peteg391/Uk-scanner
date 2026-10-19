@@ -30,6 +30,11 @@ MIN_VALUE_TRADED_GBP = 250_000    # skip illiquid names (median daily £ traded,
 EXCLUDE_SECTORS = {"investment trusts"}   # trusts mostly track their holdings
 UNIVERSE_CACHE = "universe.csv"   # fallback list if Wikipedia can't be reached
 OUT_DIR = "site"
+HISTORY_FILE = "history.csv"      # one row per stock per day: the forward-test log (kept in the repo)
+HORIZONS = (5, 10, 20)            # trading days we look ahead when scoring past signals
+COST_RT = 0.010                   # assumed round-trip cost on a buy: 0.5% stamp duty + ~0.5% spread
+BACKFILL_DAYS = 60                # on the first run, replay this many past days as an indicative check
+MIN_N = 30                        # fewer matured signals than this = too early to conclude
 
 LONDON = ZoneInfo("Europe/London")
 SESSION_OPEN = time(8, 0)
@@ -339,6 +344,193 @@ def finalise(m: dict) -> dict:
 
 
 # ----------------------------------------------------------------------------
+# 5b. Track record: logs every day's signals and checks what happened next
+# ----------------------------------------------------------------------------
+HIST_COLS = ["date", "symbol", "tidm", "signal", "score", "rank", "shown", "source"]
+
+
+def load_history() -> pd.DataFrame:
+    if os.path.exists(HISTORY_FILE):
+        try:
+            h = pd.read_csv(HISTORY_FILE, dtype={"date": str})
+            return h[HIST_COLS]
+        except Exception as e:
+            print(f"  history unreadable ({e}), starting fresh")
+    return pd.DataFrame(columns=HIST_COLS)
+
+
+def save_history(h: pd.DataFrame):
+    h = h.copy()
+    h["score"] = h["score"].astype(float).round(2)
+    h["rank"] = h["rank"].astype(int)
+    h["shown"] = h["shown"].astype(int)
+    h = h.sort_values(["date", "rank", "symbol"]).reset_index(drop=True)
+    h.to_csv(HISTORY_FILE, index=False, float_format="%.2f")
+
+
+def snapshot(results, shown_syms, date_str, source) -> pd.DataFrame:
+    rows = [dict(date=date_str, symbol=m["symbol"], tidm=m["tidm"], signal=m["signal"], score=round(m["score"], 2),
+                 rank=i + 1, shown=int(m["symbol"] in shown_syms), source=source)
+            for i, m in enumerate(results)]
+    return pd.DataFrame(rows, columns=HIST_COLS)
+
+
+def _index_dates(df):
+    idx = pd.to_datetime(df.index)
+    if getattr(idx, "tz", None) is not None:
+        idx = idx.tz_localize(None)
+    return idx.normalize()
+
+
+def backfill(prices, uni, have_dates, last_complete):
+    """Replay the labels on past days using only the data available on each day."""
+    ref = max(prices.values(), key=len)
+    dates = [d for d in _index_dates(ref) if d.date() <= last_complete]
+    dates = [d for d in dates[-BACKFILL_DAYS:] if d.strftime("%Y-%m-%d") not in have_dates]
+    idx_cache = {s: _index_dates(df) for s, df in prices.items()}
+    out = []
+    for d in dates:
+        cut = {}
+        for s, df in prices.items():
+            n = int(idx_cache[s].searchsorted(d, side="right"))
+            if n >= 200 and idx_cache[s][n - 1] == d:
+                cut[s] = df.iloc[:n]
+        if len(cut) < 50:
+            continue
+        res, _ = score_all(cut, uni, 1.0)
+        shown = {m["symbol"] for m in [m for m in res if m["score"] >= MIN_SCORE and m["reasons"]][:TOP_N]}
+        out.append(snapshot(res, shown, d.strftime("%Y-%m-%d"), "replay"))
+    print(f"Backfilled {len(out)} past days")
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame(columns=HIST_COLS)
+
+
+def attach_returns(h, prices):
+    for H in HORIZONS:
+        h[f"r{H}"] = np.nan
+    for sym, g in h.groupby("symbol"):
+        if sym not in prices:
+            continue
+        c = prices[sym]["Close"].values
+        pos = _index_dates(prices[sym]).get_indexer(pd.to_datetime(g["date"]))
+        for H in HORIZONS:
+            p2 = pos + H
+            ok = (pos >= 0) & (p2 < len(c))
+            r = np.full(len(g), np.nan)
+            r[ok] = c[p2[ok]] / c[pos[ok]] - 1
+            h.loc[g.index, f"r{H}"] = r
+    for H in HORIZONS:    # compare with the average stock on the same day, so a rising/falling market cancels out
+        h[f"x{H}"] = h[f"r{H}"] - h.groupby("date")[f"r{H}"].transform("mean")
+    return h
+
+
+def tier(row):
+    if row["shown"] and row["rank"] <= 5:
+        return "Top 5 by score"
+    return "Shown on page (6-15)" if row["shown"] else "Not shown"
+
+
+def new_entries(h, key):
+    """Count a stock once when it ENTERS a group, not every day it stays there."""
+    h = h.sort_values(["symbol", "date"])
+    prev = h.groupby("symbol")[key].shift(1)
+    return h[(prev != h[key]) | prev.isna()]
+
+
+def _fmt(x):
+    return f"{x * 100:+.1f}%"
+
+
+def stats_table(h, key, groups, costed, title):
+    e = new_entries(h, key)
+    rows = []
+    for gname in groups:
+        sub = e[e[key] == gname]
+        cost = COST_RT if gname in costed else 0.0
+        cells = ""
+        for H in HORIZONS:
+            d = sub[sub[f"r{H}"].notna()]
+            n = len(d)
+            if n == 0:
+                cells += '<td class="num dim">–</td>'
+                continue
+            r, x = d[f"r{H}"] - cost, d[f"x{H}"] - cost
+            hit = (r > 0).mean() * 100
+            cls = "dim" if n < MIN_N else ("up" if r.mean() > 0 else "down")
+            cells += (f'<td class="num {cls}"><b>{_fmt(r.mean())}</b>'
+                      f'<div class="sub">vs avg {_fmt(x.mean())} · {hit:.0f}% win · n={n}</div></td>')
+        rows.append(f"<tr><td>{escape(gname)}{'' if gname in costed else ' <span class=sub>(no costs)</span>'}</td>{cells}</tr>")
+    head = "".join(f'<th class="num">{H} days</th>' for H in HORIZONS)
+    return (f'<table class="trk"><thead><tr><th>{escape(title)}</th>{head}</tr></thead>'
+            f'<tbody>{"".join(rows)}</tbody></table>')
+
+
+def verdict(h):
+    e = new_entries(h, "signal")
+    out = []
+    for H in (10,):
+        b = e[(e["signal"] == "BUY") & e[f"x{H}"].notna()]
+        a = e[(e["signal"] == "AVOID") & e[f"x{H}"].notna()]
+        if len(b) < MIN_N:
+            out.append(f"Too early to judge: only {len(b)} BUY signals have had {H} days to play out (about {MIN_N} are needed).")
+            continue
+        xb = b[f"x{H}"] - COST_RT
+        t = xb.mean() / (xb.std() / math.sqrt(len(xb))) if xb.std() > 0 else 0
+        word = "ahead of" if xb.mean() > 0 else "behind"
+        sure = "a gap that is probably real" if abs(t) >= 2 else "a gap small enough to be luck"
+        out.append(f"BUY signals ended {abs(xb.mean()) * 100:.1f}% {word} the average stock after {H} days and after costs "
+                   f"({len(b)} signals, {sure}).")
+        if len(a) >= MIN_N:
+            out.append(f"AVOID signals: {_fmt(a[f'x{H}'].mean())} vs the average stock.")
+    return " ".join(out)
+
+
+def track_html(h, prices, label):
+    if h.empty:
+        return ""
+    h = attach_returns(h.copy(), prices)
+    h["tier"] = h.apply(tier, axis=1)
+    first, last = h["date"].min(), h["date"].max()
+    parts = [f'<div class="meta">{label}: {h["date"].nunique()} day{"" if h["date"].nunique() == 1 else "s"} logged ({first} to {last}). '
+             f'Each stock is counted once, on the day it first gets that label. Returns are close to close, '
+             f'compared with the average stock scanned that day.</div>',
+             f'<div class="meta"><b>{escape(verdict(h))}</b></div>',
+             stats_table(h, "signal", ["BUY", "MONITOR", "AVOID"], {"BUY", "MONITOR"}, "By label"),
+             stats_table(h, "tier", ["Top 5 by score", "Shown on page (6-15)", "Not shown"],
+                         {"Top 5 by score", "Shown on page (6-15)", "Not shown"}, "By score rank")]
+    return "".join(parts)
+
+
+def track_section(prices, uni, results, top, last_bar, now):
+    h = load_history()
+    n_before = len(h)
+    complete = last_bar < now.date() or (last_bar == now.date() and now.time() >= time(16, 45))
+    last_complete = last_bar if complete else max(
+        (d.date() for d in _index_dates(max(prices.values(), key=len)) if d.date() < last_bar), default=last_bar)
+    if not (h["source"] == "replay").any():
+        have = set(h["date"])
+        h = pd.concat([h, backfill(prices, uni, have, last_complete)], ignore_index=True)
+    if complete:
+        d = last_bar.strftime("%Y-%m-%d")
+        h = h[h["date"] != d]
+        h = pd.concat([h, snapshot(results, {m["symbol"] for m in top}, d, "live")], ignore_index=True)
+    if len(h) != n_before or complete:
+        save_history(h)
+    live, replay = h[h["source"] == "live"], h[h["source"] == "replay"]
+    html = ""
+    if live.empty:
+        html += ('<div class="meta"><b>Live record:</b> starts after the next full trading day closes. '
+                 'Every day the scanner logs each stock and its label, then checks what happened 5, 10 and 20 days later.</div>')
+    else:
+        html += "<h3>Live signals</h3>" + track_html(live, prices, "Live")
+    if not replay.empty:
+        html += ("<h3>Replay of recent weeks (indicative)</h3>"
+                 "<div class='meta'>Same rules run on past days using only the data available on each day, "
+                 "on today's FTSE 100/250 list (so stocks that dropped out are missing). Useful, not proof.</div>"
+                 + track_html(replay, prices, "Replay"))
+    return html
+
+
+# ----------------------------------------------------------------------------
 # 5. Dashboard
 # ----------------------------------------------------------------------------
 def sparkline(values, direction):
@@ -414,7 +606,7 @@ def heat_tile(name, ret, n):
             f'<span class="tn">{n} stocks</span></div>')
 
 
-def build_html(top, everything, sectors, meta):
+def build_html(top, everything, sectors, meta, track=""):
     cards = "".join(card(m) for m in top) or '<p class="empty">Nothing unusual right now. Quiet market.</p>'
     buys = [m for m in everything if m["signal"] == "BUY"]
     buy_cards = "".join(card(m) for m in buys) or '<p class="empty">No stock is in a tested buy zone right now. That is normal: the setup is rare.</p>'
@@ -432,7 +624,7 @@ def build_html(top, everything, sectors, meta):
     return HTML_TEMPLATE.format(
         updated=escape(meta["updated"]), status=escape(meta["status"]),
         n=meta["n_scanned"], cards=cards, tiles=tiles, rows=rows, buy_cards=buy_cards,
-        n_buy=counts["BUY"], n_mon=counts["MONITOR"], n_avoid=counts["AVOID"],
+        track=track, n_buy=counts["BUY"], n_mon=counts["MONITOR"], n_avoid=counts["AVOID"],
         partial_note=("Volume is compared with what's normal by this time of day."
                       if meta["partial"] else "Showing the last full session."),
     )
@@ -519,6 +711,12 @@ th {{ color: var(--muted); font-weight: 500; }}
 .filters button {{ font: inherit; font-size: 13px; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--ink2);
   background: transparent; color: var(--ink); cursor: pointer; }}
 .filters button[aria-pressed="true"] {{ background: var(--ink); color: var(--page); }}
+h3 {{ font-size: 14px; margin: 16px 0 4px; }}
+table.trk {{ width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; }}
+table.trk th, table.trk td {{ padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }}
+table.trk td.num, table.trk th.num {{ text-align: right; }}
+table.trk .dim {{ color: var(--muted); }}
+table.trk .sub {{ font-size: 11px; color: var(--muted); font-weight: 400; }}
 footer {{ color: var(--muted); font-size: 12px; margin: 24px 0 8px; }}
 </style></head>
 <body><main>
@@ -560,6 +758,9 @@ document.getElementById("flt").addEventListener("click", function (e) {{
 }});
 </script>
 
+<h2>Track record</h2>
+{track}
+
 <details class="help"><summary>How to read this</summary>
 <p><b>σ (sigma)</b>: how big today's move is compared with this stock's normal daily move over the last 60 days. 1σ is an ordinary day; 3σ or more is rare.</p>
 <p><b>vs sector</b>: the move after taking out what its sector did, so you can tell a stock-specific story from the whole sector moving.</p>
@@ -582,16 +783,13 @@ document.getElementById("flt").addEventListener("click", function (e) {{
 # ----------------------------------------------------------------------------
 # 6. Main
 # ----------------------------------------------------------------------------
-def run(prices: dict, uni: pd.DataFrame, now: datetime):
+def score_all(prices: dict, uni: pd.DataFrame, frac: float):
+    """Score every stock and label it. Returns (results sorted by score, sector table)."""
     meta_by_sym = uni.set_index("symbol").to_dict("index")
-    last_dates = [df.index[-1].date() for df in prices.values()]
-    last_bar = max(set(last_dates), key=last_dates.count) if last_dates else now.date()
-    sess = session_state(now, last_bar)
-
     results = []
     for sym, df in prices.items():
         try:
-            m = score_stock(df, sess["frac"])
+            m = score_stock(df, frac)
         except Exception as e:
             print(f"  skip {sym}: {e}")
             continue
@@ -601,25 +799,39 @@ def run(prices: dict, uni: pd.DataFrame, now: datetime):
         m.update(symbol=sym, tidm=info.get("tidm", sym[:-2]), name=info.get("name", sym),
                  sector=info.get("sector", "Other"))
         results.append(m)
-
-    # sector adjustment
+    if not results:
+        return [], None
     res = pd.DataFrame(results)
     sect = res.groupby("sector").agg(med_z=("ret_z", "median"), ret=("ret", "median"), n=("ret", "size"))
     for m in results:
         row = sect.loc[m["sector"]]
         m["rel_z"] = m["ret_z"] - row["med_z"] if row["n"] >= 3 else m["ret_z"]
         finalise(m)
-
     results.sort(key=lambda m: m["score"], reverse=True)
+    return results, sect
+
+
+def run(prices: dict, uni: pd.DataFrame, now: datetime):
+    last_dates = [df.index[-1].date() for df in prices.values()]
+    last_bar = max(set(last_dates), key=last_dates.count) if last_dates else now.date()
+    sess = session_state(now, last_bar)
+
+    results, sect = score_all(prices, uni, sess["frac"])
     top = [m for m in results if m["score"] >= MIN_SCORE and m["reasons"]][:TOP_N]
     sectors = [{"sector": s, "ret": float(r["ret"]), "n": int(r["n"])}
                for s, r in sect[sect["n"] >= 3].sort_values("ret", ascending=False).iterrows()]
 
     meta = {"updated": now.strftime("%a %d %b, %H:%M"), "status": sess["status"],
             "partial": sess["partial"], "n_scanned": len(results)}
+    try:
+        track = track_section(prices, uni, results, top, last_bar, now)
+    except Exception as e:           # the forward test must never break the dashboard
+        import traceback
+        traceback.print_exc()
+        track = f'<p class="empty">Track record unavailable this run ({escape(str(e))}).</p>'
     os.makedirs(OUT_DIR, exist_ok=True)
     with open(os.path.join(OUT_DIR, "index.html"), "w", encoding="utf-8") as f:
-        f.write(build_html(top, results, sectors, meta))
+        f.write(build_html(top, results, sectors, meta, track))
     slim = [{k: v for k, v in m.items() if k != "spark"} for m in results]
     with open(os.path.join(OUT_DIR, "data.json"), "w", encoding="utf-8") as f:
         json.dump({"meta": meta, "top": [m["symbol"] for m in top], "stocks": slim}, f, default=float)
