@@ -35,6 +35,13 @@ HORIZONS = (5, 10, 20)            # trading days we look ahead when scoring past
 COST_RT = 0.010                   # assumed round-trip cost on a buy: 0.5% stamp duty + ~0.5% spread
 BACKFILL_DAYS = 60                # on the first run, replay this many past days as an indicative check
 MIN_N = 30                        # fewer matured signals than this = too early to conclude
+# --- "your rule" simulator (top 2 by score, buy ~09:00, +3% take profit, -3% stop) ---
+MARKET_TZ = "Europe/London"
+ENTRY_MIN = 9 * 60                # minutes after midnight when you buy (09:00)
+RULE_K, RULE_TP, RULE_SL = 2, 0.03, 0.03
+STOP_SLIP = 0.003                 # extra slippage assumed when a stop is hit
+N_RANDOM = 40                     # random-pick runs used as the control
+START_CASH = 240
 
 LONDON = ZoneInfo("Europe/London")
 SESSION_OPEN = time(8, 0)
@@ -500,6 +507,165 @@ def track_html(h, prices, label):
     return "".join(parts)
 
 
+def download_hourly(symbols):
+    """Hourly bars for the last ~6 months, used to replay a 09:00 entry with take-profit and stop."""
+    import yfinance as yf
+    data = yf.download(symbols, period="6mo", interval="1h", group_by="ticker",
+                       auto_adjust=True, threads=True, progress=False)
+    out = {}
+    for s in symbols:
+        try:
+            df = data[s].dropna(subset=["Close"])
+        except KeyError:
+            continue
+        if len(df) > 20:
+            out[s] = _hourly_pack(df)
+    print(f"Hourly bars: {len(out)}/{len(symbols)} stocks")
+    return out
+
+
+def _hourly_pack(df):
+    idx = pd.DatetimeIndex(df.index)
+    idx = idx.tz_localize("UTC") if idx.tz is None else idx
+    idx = idx.tz_convert(MARKET_TZ)
+    dates = idx.normalize().tz_localize(None)
+    hm = (idx.hour * 60 + idx.minute).values
+    b = dict(d=dates.values, hm=hm, o=df["Open"].values, h=df["High"].values,
+             l=df["Low"].values, c=df["Close"].values)
+    b["ent"] = {pd.Timestamp(d): i for i, (d, m) in enumerate(zip(dates, hm)) if m == ENTRY_MIN}
+    return b
+
+
+def _trade_path(b, i0):
+    """Buy at the entry bar's open; walk forward until +TP or -SL (stop wins ties). Returns trade dict."""
+    entry = b["o"][i0]
+    tp, sl = entry * (1 + RULE_TP), entry * (1 - RULE_SL)
+    n = len(b["o"])
+    for j in range(i0, n):
+        if b["l"][j] <= sl or (j > i0 and b["o"][j] <= sl):
+            px = min(b["o"][j], sl) if j > i0 else sl
+            return dict(j=j, kind="stop", ret=px * (1 - STOP_SLIP) / entry - 1)
+        if b["h"][j] >= tp or (j > i0 and b["o"][j] >= tp):
+            px = max(b["o"][j], tp) if j > i0 else tp
+            return dict(j=j, kind="target", ret=px / entry - 1)
+    return dict(j=n - 1, kind="open", ret=b["c"][n - 1] / entry - 1)
+
+
+def run_rule(order_by_day, cal, hourly, k=RULE_K):
+    open_pos, trades = [], []
+    for nd in cal:
+        key_in = (nd.toordinal(), ENTRY_MIN)
+        open_pos = [p for p in open_pos if p["exit_key"] is None or p["exit_key"] > key_in]
+        held = {p["sym"] for p in open_pos}
+        for sym in order_by_day.get(nd, []):
+            if len(open_pos) >= k:
+                break
+            b = hourly.get(sym)
+            if sym in held or b is None or nd not in b["ent"]:
+                continue
+            i0 = b["ent"][nd]
+            r = _trade_path(b, i0)
+            ed = pd.Timestamp(b["d"][r["j"]])
+            p = dict(sym=sym, entry_key=key_in, kind=r["kind"], gross=r["ret"], net=r["ret"] - COST_RT,
+                     exit_key=None if r["kind"] == "open" else (ed.toordinal(), int(b["hm"][r["j"]]) + 60),
+                     days=(ed - nd).days)
+            open_pos.append(p)
+            held.add(sym)
+            trades.append(p)
+    return trades
+
+
+def summarise(trades, k=RULE_K):
+    closed = [t for t in trades if t["kind"] != "open"]
+    ev = [(t["entry_key"], 1, t) for t in trades] + [(t["exit_key"], 0, t) for t in closed]
+    ev.sort(key=lambda e: (e[0], e[1]))
+    E, peak, dd = float(START_CASH), float(START_CASH), 0.0
+    for _, is_entry, t in ev:
+        if is_entry:
+            t["size"] = E / k
+        else:
+            E += t["size"] * t["net"]
+            peak = max(peak, E)
+            dd = min(dd, E / peak - 1)
+    final = E + sum(t["size"] * t["net"] for t in trades if t["kind"] == "open")
+    wins = sum(1 for t in closed if t["net"] > 0)
+    return dict(n=len(closed), n_open=len(trades) - len(closed), win=wins / len(closed) if closed else float("nan"),
+                avg=float(np.mean([t["net"] for t in closed])) if closed else float("nan"),
+                days=float(np.mean([t["days"] for t in closed])) if closed else float("nan"),
+                final=final, dd=dd)
+
+
+def rule_html(h, hourly):
+    base = h[h["source"].isin(["live", "replay"])]
+    snap = base.sort_values(["date", "rank"]).groupby("date")["symbol"].apply(list).to_dict()
+    am = h[h["source"] == "am"].sort_values(["date", "rank"]).groupby("date")["symbol"].apply(list).to_dict()
+    cal_all = sorted({pd.Timestamp(d) for b in hourly.values() for d in b["ent"]})
+    sdates = sorted(snap)
+    if not cal_all or not sdates:
+        return ""
+    cal, prev_of = [], {}
+    for nd in cal_all:
+        ps = [d for d in sdates if pd.Timestamp(d) < nd]
+        if ps:
+            cal.append(nd)
+            prev_of[nd] = ps[-1]
+    if len(cal) < 3:
+        return ""
+    order = {}
+    for nd in cal:
+        prev = snap[prev_of[nd]]
+        first = am.get(nd.strftime("%Y-%m-%d"), [])
+        order[nd] = first + [s for s in prev if s not in first]
+    mine = summarise(run_rule(order, cal, hourly))
+    rng = np.random.default_rng(7)
+    rand = []
+    for _ in range(N_RANDOM):
+        ro = {nd: list(rng.permutation(snap[prev_of[nd]])) for nd in cal}
+        rand.append(summarise(run_rule(ro, cal, hourly)))
+    ravg = np.array([r["avg"] for r in rand])
+    pct = float(np.mean(ravg <= mine["avg"])) if mine["n"] else float("nan")
+    rm = lambda f: float(np.nanmean([r[f] for r in rand]))
+    if mine["n"] < MIN_N:
+        say = (f"Too few finished trades ({mine['n']}) to say whether the ranking adds anything. "
+               f"Compare the two rows once there are 30+ each.")
+    elif pct >= 0.95:
+        say = "Your picks beat 95%+ of random picks run through the same rule, so the ranking looks like it adds something."
+    elif pct <= 0.05:
+        say = "Your picks did worse than 95%+ of random picks, so the ranking is not helping."
+    else:
+        say = (f"Your picks beat {pct * 100:.0f}% of the random runs: inside the normal range, so the ranking is not clearly "
+               f"adding anything and the +3%/-3% rule in this market may be doing the work.")
+    def row(name, r, avg_n=None):
+        n = f"{r['n']:.0f}" if avg_n is None else f"{avg_n:.0f}"
+        return (f"<tr><td>{name}</td><td class='num'>{n}</td><td class='num'>{r['win'] * 100:.0f}%</td>"
+                f"<td class='num'>{_fmt(r['avg'])}</td><td class='num'>{r['days']:.1f}</td>"
+                f"<td class='num'><b>£{r['final']:.0f}</b><div class='sub'>worst dip {r['dd'] * 100:.0f}%</div></td></tr>")
+    rr = dict(n=rm("n"), win=rm("win"), avg=rm("avg"), days=rm("days"), final=rm("final"), dd=rm("dd"))
+    tbl = ("<table class='trk'><thead><tr><th></th><th class='num'>Done</th><th class='num'>Win</th>"
+           "<th class='num'>Avg/trade</th><th class='num'>Days</th><th class='num'>£" + str(START_CASH) + " becomes</th></tr></thead><tbody>"
+           + row("Top 2 by score", mine) + row(f"Random 2 (avg of {N_RANDOM})", rr) + "</tbody></table>")
+    ds = f"{min(cal).date()} to {max(cal).date()}"
+    return ("<h3>Your rule, replayed</h3><div class='meta'>Hold 2 stocks. Buy at 09:00 from the previous evening's ranking "
+            "(or the morning list once the scanner has logged it), +3% take profit, -3% stop, "
+            f"after 1% costs and extra slippage on stops. {ds}. Open positions are counted at their latest price.</div>"
+            f"<div class='meta'><b>{escape(say)}</b></div>" + tbl +
+            "<div class='meta'>The real 09:00 ranking also uses the first hour's moves, which can't be rebuilt for past days, "
+            "so this is close but not exact.</div>")
+
+
+def record_am(h, top, now, last_bar):
+    """Log the morning top-10 once a day, at about 09:00-09:45 UK, so the 9am ranking can be tested later."""
+    t = now.time()
+    if now.weekday() >= 5 or not (time(9, 0) <= t <= time(9, 45)) or last_bar != now.date():
+        return h
+    d = now.strftime("%Y-%m-%d")
+    if ((h["source"] == "am") & (h["date"] == d)).any():
+        return h
+    rows = [dict(date=d, symbol=m["symbol"], tidm=m["tidm"], signal=m["signal"], score=round(m["score"], 2),
+                 rank=i + 1, shown=1, source="am") for i, m in enumerate(top[:10])]
+    return pd.concat([h, pd.DataFrame(rows, columns=HIST_COLS)], ignore_index=True)
+
+
 def track_section(prices, uni, results, top, last_bar, now):
     h = load_history()
     n_before = len(h)
@@ -511,8 +677,9 @@ def track_section(prices, uni, results, top, last_bar, now):
         h = pd.concat([h, backfill(prices, uni, have, last_complete)], ignore_index=True)
     if complete:
         d = last_bar.strftime("%Y-%m-%d")
-        h = h[h["date"] != d]
+        h = h[~((h["date"] == d) & (h["source"] == "live"))]
         h = pd.concat([h, snapshot(results, {m["symbol"] for m in top}, d, "live")], ignore_index=True)
+    h = record_am(h, top, now, last_bar)
     if len(h) != n_before or complete:
         save_history(h)
     live, replay = h[h["source"] == "live"], h[h["source"] == "replay"]
@@ -527,6 +694,13 @@ def track_section(prices, uni, results, top, last_bar, now):
                  "<div class='meta'>Same rules run on past days using only the data available on each day, "
                  "on today's FTSE 100/250 list (so stocks that dropped out are missing). Useful, not proof.</div>"
                  + track_html(replay, prices, "Replay"))
+    try:
+        hourly = download_hourly(sorted(set(h["symbol"])))
+        html += rule_html(h, hourly)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        html += f'<div class="meta">Your-rule replay unavailable this run ({escape(str(e))}).</div>'
     return html
 
 
