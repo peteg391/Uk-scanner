@@ -1,103 +1,103 @@
 tidm,name,sector,symbol
-III,3i,Financial services,III.L
-ABDN,Aberdeen Group,Financial services,ABDN.L
-ADM,Admiral Group,Insurance,ADM.L
-AAF,Airtel Africa,Telecommunications services,AAF.L
-ALW,Alliance Witan,Investment trusts,ALW.L
-AAL,Anglo American plc,Mining,AAL.L
-ANTO,Antofagasta plc,Mining,ANTO.L
-ABF,Associated British Foods,Food & tobacco,ABF.L
-AZN,AstraZeneca,Pharmaceuticals & biotechnology,AZN.L
-AUTO,Autotrader Group,Media,AUTO.L
+III,3i,Investment banking and brokerage services,III.L
+ABDN,Aberdeen Group,Investment banking and brokerage services,ABDN.L
+ADM,Admiral Group,Non-life insurance,ADM.L
+AAF,Airtel Africa,Telecommunications service providers,AAF.L
+ALW,Alliance Witan,Closed end investments,ALW.L
+AAL,Anglo American plc,Industrial metals and mining,AAL.L
+ANTO,Antofagasta plc,Industrial metals and mining,ANTO.L
+ABF,Associated British Foods,Food producers,ABF.L
+AZN,AstraZeneca,"Pharmaceuticals, biotechnology and marijuana producers",AZN.L
+AUTO,Autotrader Group,Software and computer services,AUTO.L
 AV,Aviva,Life insurance,AV.L
-BAB,Babcock International,Aerospace & defence,BAB.L
-BA,BAE Systems,Aerospace & defence,BA.L
-BBY,Balfour Beatty,Construction & materials,BBY.L
+BAB,Babcock International,Aerospace and defense,BAB.L
+BA,BAE Systems,Aerospace and defense,BA.L
+BBY,Balfour Beatty,Construction and materials,BBY.L
 BARC,Barclays,Banks,BARC.L
-BTRW,Barratt Redrow,Household goods & home construction,BTRW.L
-BP,BP,Oil & gas producers,BP.L
+BTRW,Barratt Redrow,Household goods and home construction,BTRW.L
+BP,BP,Non-renewable energy,BP.L
 BATS,British American Tobacco,Tobacco,BATS.L
-BLND,British Land,Real estate,BLND.L
-BT.A,BT Group,Telecommunications services,BT-A.L
-BNZL,Bunzl,Support services,BNZL.L
+BLND,British Land,Real estate investment trusts,BLND.L
+BT.A,BT Group,Telecommunications service providers,BT-A.L
+BNZL,Bunzl,General industrials,BNZL.L
 BRBY,Burberry Group,Personal goods,BRBY.L
-CNA,Centrica,Multiline utilities,CNA.L
+CNA,Centrica,"Gas, water and multi-utilities",CNA.L
 CCEP,Coca-Cola Europacific Partners,Beverages,CCEP.L
 CCH,Coca-Cola HBC,Beverages,CCH.L
-CPG,Compass Group,Support services,CPG.L
-CCC,Computacenter,Software & computer services,CCC.L
-CTEC,Convatec,Health care equipment & supplies,CTEC.L
+CPG,Compass Group,Consumer services,CPG.L
+CCC,Computacenter,Software and computer services,CCC.L
+CTEC,Convatec,Medical equipment and services,CTEC.L
 CRDA,Croda International,Chemicals,CRDA.L
-DCC,DCC Energy,Support services,DCC.L
+DCC,DCC Energy,Industrial support services,DCC.L
 DGE,Diageo,Beverages,DGE.L
 DPLM,Diploma,Industrial support services,DPLM.L
 EZJ,EasyJet,Travel and leisure,EZJ.L
-EDV,Endeavour Mining,Mining,EDV.L
-EXPN,Experian,Support services,EXPN.L
-FCIT,F & C Investment Trust,Collective investments,FCIT.L
-FRES,Fresnillo plc,Mining,FRES.L
+EDV,Endeavour Mining,Precious metals and mining,EDV.L
+EXPN,Experian,Industrial support services,EXPN.L
+FCIT,F & C Investment Trust,Closed end investments,FCIT.L
+FRES,Fresnillo plc,Precious metals and mining,FRES.L
 GAW,Games Workshop,Leisure goods,GAW.L
-GLEN,Glencore,Mining,GLEN.L
-GSK,GSK plc,Pharmaceuticals & biotechnology,GSK.L
-HLN,Haleon,Pharmaceuticals & biotechnology,HLN.L
-HLMA,Halma plc,Electronic equipment & parts,HLMA.L
+GLEN,Glencore,Industrial metals and mining,GLEN.L
+GSK,GSK plc,"Pharmaceuticals, biotechnology and marijuana producers",GSK.L
+HLN,Haleon,"Pharmaceuticals, biotechnology and marijuana producers",HLN.L
+HLMA,Halma plc,Electronic and electrical equipment,HLMA.L
 HSX,Hiscox,Non-life insurance,HSX.L
-HWDN,Howdens Joinery,Homebuilding & construction supplies,HWDN.L
+HWDN,Howdens Joinery,Retailers,HWDN.L
 HSBA,HSBC,Banks,HSBA.L
-ICG,ICG,Financial services,ICG.L
-IGG,IG Group,Financial services,IGG.L
-IHG,IHG Hotels & Resorts,Travel & leisure,IHG.L
-IMI,IMI,Industrial engineering,IMI.L
+ICG,ICG,Investment banking and brokerage services,ICG.L
+IGG,IG Group,Investment banking and brokerage services,IGG.L
+IHG,IHG Hotels & Resorts,Travel and leisure,IHG.L
+IMI,IMI,Electronic and electrical equipment,IMI.L
 IMB,Imperial Brands,Tobacco,IMB.L
 INF,Informa,Media,INF.L
-IAG,International Airlines Group,Travel & leisure,IAG.L
-ITRK,Intertek,Support services,ITRK.L
-INVP,Investec,Financial services,INVP.L
-ITH,Ithaca Energy,Oil & gas producers,ITH.L
-JD,JD Sports,General retailers,JD.L
-BGEO,Lion Finance Group,Banking services,BGEO.L
+IAG,International Airlines Group,Travel and leisure,IAG.L
+ITRK,Intertek,Industrial support services,ITRK.L
+INVP,Investec,Banks,INVP.L
+ITH,Ithaca Energy,Non-renewable energy,ITH.L
+JD,JD Sports,Retailers,JD.L
+BGEO,Lion Finance Group,Banks,BGEO.L
 KGF,Kingfisher plc,Retailers,KGF.L
 LAND,Land Securities,Real estate investment trusts,LAND.L
 LGEN,Legal & General,Life insurance,LGEN.L
 LLOY,Lloyds Banking Group,Banks,LLOY.L
 LMP,LondonMetric Property,Real estate investment trusts,LMP.L
-LSEG,London Stock Exchange Group,Financial services,LSEG.L
-MNG,M&G,Financial services,MNG.L
-MKS,Marks & Spencer,Food & drug retailing,MKS.L
-MRO,Melrose Industries,Aerospace & defence,MRO.L
-MTLN,Metlen Energy & Metals,Multiline utilities,MTLN.L
-NG,National Grid plc,Multiline utilities,NG.L
+LSEG,London Stock Exchange Group,Finance and credit services,LSEG.L
+MNG,M&G,Investment banking and brokerage services,MNG.L
+MKS,Marks & Spencer,"Personal care, drug and grocery stores",MKS.L
+MRO,Melrose Industries,Aerospace and defense,MRO.L
+MTLN,Metlen Energy & Metals,"Gas, water and multi-utilities",MTLN.L
+NG,National Grid plc,"Gas, water and multi-utilities",NG.L
 NWG,NatWest Group,Banks,NWG.L
-NXT,Next plc,General retailers,NXT.L
+NXT,Next plc,Retailers,NXT.L
 PSON,Pearson plc,Media,PSON.L
-PSH,Pershing Square Holdings,Financial services,PSH.L
-PCT,Polar Capital Technology Trust,Investment trusts,PCT.L
+PSH,Pershing Square Holdings,Closed end investments,PSH.L
+PCT,Polar Capital Technology Trust,Closed end investments,PCT.L
 PRU,Prudential plc,Life insurance,PRU.L
-RKT,Reckitt,Household goods & home construction,RKT.L
-REL,RELX,Media,REL.L
-RTO,Rentokil Initial,Support services,RTO.L
-RIO,Rio Tinto,Mining,RIO.L
-RR,Rolls-Royce Holdings,Aerospace & defence,RR.L
-SGE,Sage Group,Software & computer services,SGE.L
-SBRY,Sainsbury's,Food & drug retailing,SBRY.L
-SMT,Scottish Mortgage Investment Trust,Collective investments,SMT.L
+RKT,Reckitt,"Personal care, drug and grocery stores",RKT.L
+REL,RELX,Software and computer services,REL.L
+RTO,Rentokil Initial,Industrial support services,RTO.L
+RIO,Rio Tinto,Industrial metals and mining,RIO.L
+RR,Rolls-Royce Holdings,Aerospace and defense,RR.L
+SGE,Sage Group,Software and computer services,SGE.L
+SBRY,Sainsbury's,"Personal care, drug and grocery stores",SBRY.L
+SMT,Scottish Mortgage Investment Trust,Closed end investments,SMT.L
 SGRO,Segro,Real estate investment trusts,SGRO.L
-SVT,Severn Trent,Multiline utilities,SVT.L
-SHEL,Shell plc,Oil & gas producers,SHEL.L
+SVT,Severn Trent,"Gas, water and multi-utilities",SVT.L
+SHEL,Shell plc,Non-renewable energy,SHEL.L
 SMIN,Smiths Group,General industrials,SMIN.L
-SN,Smith & Nephew,Health care equipment & supplies,SN.L
+SN,Smith & Nephew,Medical equipment and services,SN.L
 SPX,Spirax Group,Industrial engineering,SPX.L
-SSE,SSE plc,Electrical utilities & independent power producers,SSE.L
+SSE,SSE plc,Electricity,SSE.L
 STAN,Standard Chartered,Banks,STAN.L
 SDLF,Standard Life,Life insurance,SDLF.L
-STJ,St. James's Place,Financial services,STJ.L
-TSCO,Tesco,Food & drug retailing,TSCO.L
+STJ,St. James's Place,Investment banking and brokerage services,STJ.L
+TSCO,Tesco,"Personal care, drug and grocery stores",TSCO.L
 BBOX,Tritax Big Box REIT,Real estate investment trusts,BBOX.L
-ULVR,Unilever,Personal goods,ULVR.L
-UU,United Utilities,Multiline utilities,UU.L
-VOD,Vodafone Group,Mobile telecommunications,VOD.L
-WEIR,Weir,Industrial goods and services,WEIR.L
-WTB,Whitbread,Retail hospitality,WTB.L
+ULVR,Unilever,"Personal care, drug and grocery stores",ULVR.L
+UU,United Utilities,"Gas, water and multi-utilities",UU.L
+VOD,Vodafone Group,Telecommunications service providers,VOD.L
+WEIR,Weir,Industrial engineering,WEIR.L
+WTB,Whitbread,Travel and leisure,WTB.L
 WPP,WPP,Media,WPP.L
 3IN,3i Infrastructure,Financial services,3IN.L
 FOUR,4imprint,Media,FOUR.L
